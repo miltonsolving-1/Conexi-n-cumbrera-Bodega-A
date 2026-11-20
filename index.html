@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PI23713 · Detalle 1 · Bodega A — Modelo 3D</title>
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+<style>
+  :root { --bg:#f4f5f7; --ink:#1d2330; --muted:#5d6675; --line:#d9dde3; --accent:#1f5fbf; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  header { padding:12px 16px 8px; border-bottom:1px solid var(--line); background:#fff; }
+  header h1 { margin:0; font-size:17px; font-weight:650; letter-spacing:.2px; }
+  header p { margin:2px 0 0; font-size:13px; color:var(--muted); }
+  main { position:relative; height:calc(100% - 64px); }
+  model-viewer { width:100%; height:100%; background: radial-gradient(circle at 50% 35%, #ffffff 0%, #e9ecf0 70%); }
+  .ar-btn { position:absolute; left:50%; bottom:20px; transform:translateX(-50%);
+    background:var(--accent); color:#fff; border:0; border-radius:24px; padding:11px 20px;
+    font-size:15px; font-weight:600; box-shadow:0 4px 14px rgba(0,0,0,.18); }
+  .panel { position:absolute; top:10px; right:10px; width:230px; max-height:calc(100% - 90px); overflow:auto;
+    background:rgba(255,255,255,.95); border:1px solid var(--line); border-radius:10px; padding:10px 12px;
+    font-size:13px; box-shadow:0 2px 10px rgba(0,0,0,.08); }
+  .panel h2 { margin:0 0 6px; font-size:13px; font-weight:650; display:flex; justify-content:space-between; align-items:center; }
+  .panel button.tog { border:1px solid var(--line); background:#fff; border-radius:6px; font-size:12px; padding:3px 8px; cursor:pointer; }
+  .item { display:flex; align-items:center; gap:8px; padding:3px 0; cursor:pointer; user-select:none; }
+  .sw { width:13px; height:13px; border-radius:3px; border:1px solid rgba(0,0,0,.25); flex:none; }
+  .item.off { opacity:.4; text-decoration:line-through; }
+  .opt { margin-top:8px; padding-top:8px; border-top:1px solid var(--line); }
+  .opt label { display:flex; gap:6px; align-items:center; }
+  .hidepanel .panel .list, .hidepanel .panel .opt { display:none; }
+  .hint { position:absolute; left:12px; bottom:22px; font-size:12px; color:var(--muted); background:rgba(255,255,255,.85);
+    padding:4px 8px; border-radius:6px; }
+  @media (max-width:600px){ .panel { width:190px; font-size:12px; } .hint{ display:none; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Detalle 1 — Conexión columna HEA300 · TB650 · HE750</h1>
+  <p>PI23713 · Megacentro San Bernardo II · Bodega A · Planos F-16 / F-17 / H-09</p>
+</header>
+<main id="main">
+  <model-viewer id="mv" src="PI23713-DETALLE1-R3.glb" alt="Modelo 3D del Detalle 1, conexión de columna HEA300 con vigas TB650 y HE750 sobre columna de hormigón"
+    camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="4000" rotation-per-second="12deg"
+    shadow-intensity="0.8" exposure="1.05" environment-image="neutral"
+    camera-orbit="35deg 65deg auto" ar ar-modes="webxr scene-viewer quick-look" ar-scale="auto">
+    <button slot="ar-button" class="ar-btn">Ver en realidad aumentada</button>
+  </model-viewer>
+  <div class="panel">
+    <h2>Componentes <button class="tog" id="tgPanel">ocultar</button></h2>
+    <div class="list" id="list"></div>
+    <div class="opt">
+      <label><input type="checkbox" id="xray"> Hormigón y grout transparentes</label>
+    </div>
+  </div>
+  <div class="hint">Arrastra para girar · pellizca o rueda para acercar</div>
+</main>
+<script type="module">
+  const NOMBRES = {
+    HORMIGON:'Columna de hormigón 700×700', GROUT:'Grout e=25', LLAVE_CORTE:'Llave de corte', PL_BASE:'Placa base 650×650×22',
+    COLUMNA_HEA300:'Columna HEA300', ATIESADORES:'PL continuidad e=12', REFUERZO_HEA:'Refuerzo HEA300', SILLA_ANCLAJE:'Silla de anclaje',
+    PERNOS_ANCLAJE:'Pernos de anclaje Ø1 1/8"', TUERCAS_ANCLAJE:'Tuercas y golillas anclaje', VIGA_TB650:'Viga TB650×200×4×3',
+    EMPALME:'Empalme TB650 (planchas, L, testas)', PERNOS_EMPALME:'Pernos empalme TB Ø1"', RIGIDIZADORES_TB:'Rigidizadores TB',
+    VIGA_HE750:'Viga HE750×250×16×6', EMPALME_HE750:'Empalme HE750 (planchas)', PERNOS_HE750:'Pernos HE750 Ø7/8"'
+  };
+  const mv = document.getElementById('mv');
+  const list = document.getElementById('list');
+  const state = {};
+  const toHex = c => '#' + c.slice(0,3).map(v => Math.round(Math.min(1, Math.pow(v, 1/2.2)) * 255).toString(16).padStart(2,'0')).join('');
+  function apply(mat) {
+    const s = state[mat.name]; if (!s) return;
+    const xr = document.getElementById('xray').checked && (mat.name === 'HORMIGON' || mat.name === 'GROUT');
+    const a = !s.on ? 0 : (xr ? 0.25 : 1);
+    mat.setAlphaMode(a < 1 ? 'BLEND' : 'OPAQUE');
+    mat.pbrMetallicRoughness.setBaseColorFactor([...s.color.slice(0,3), a]);
+  }
+  mv.addEventListener('load', () => {
+    list.innerHTML = '';
+    for (const mat of mv.model.materials) {
+      const color = mat.pbrMetallicRoughness.baseColorFactor.slice();
+      state[mat.name] = { on: true, color };
+      const row = document.createElement('div'); row.className = 'item';
+      row.innerHTML = `<span class="sw" style="background:${toHex(color)}"></span><span>${NOMBRES[mat.name] || mat.name}</span>`;
+      row.onclick = () => { state[mat.name].on = !state[mat.name].on; row.classList.toggle('off', !state[mat.name].on); apply(mat); };
+      list.appendChild(row);
+    }
+  });
+  document.getElementById('xray').onchange = () => mv.model.materials.forEach(apply);
+  document.getElementById('tgPanel').onclick = (e) => {
+    const m = document.getElementById('main'); m.classList.toggle('hidepanel');
+    e.target.textContent = m.classList.contains('hidepanel') ? 'mostrar' : 'ocultar';
+  };
+</script>
+</body>
+</html>
